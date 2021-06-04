@@ -56,3 +56,40 @@ class RevokedTokenModel(db.Model):
     def is_jti_blacklisted(cls, jti):
         query = cls.query.filter_by(jti = jti).first()
         return bool(query)
+
+class BlogModel(db.Model):
+    __tablename__ = 'blogs'
+
+    id = db.Column(db.Integer, primary_key = True)
+    author = db.Column(db.String(120), nullable = False)
+    title = db.Column(db.String(200), unique=True, nullable = False)
+    content = db.Column(db.String(1000), nullable = True)
+
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()
+    
+    def update_db(self,args):
+        self.author = args['author']
+        self.title = args['title']
+        self.content = args['content']
+        db.session.commit()
+    
+    def delete_db(self):
+        db.session.delete(self)
+        db.session.commit()
+
+    @classmethod
+    def find_by_title(cls, title):
+        return cls.query.filter_by(title = title).first()
+
+    @classmethod
+    def return_all(cls):
+        def to_json(x):
+            return {
+                'id': x.id,
+                'Author': x.author,
+                'Title': x.title,
+                'Content': x.content
+            }
+        return {'blogs': list(map(lambda x: to_json(x), BlogModel.query.all()))}

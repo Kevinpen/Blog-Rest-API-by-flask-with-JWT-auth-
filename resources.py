@@ -1,7 +1,8 @@
 from flask import jsonify, abort
 from flask_restful import Resource, reqparse,fields, marshal
-from models import UserModel, RevokedTokenModel
+from models import UserModel, RevokedTokenModel, BlogModel
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
+from data import *
 
 parser = reqparse.RequestParser()
 parser.add_argument('username', help = 'This field cannot be blank', required = True)
@@ -102,46 +103,6 @@ class SecretResource(Resource):
 list_route = '/blogapi/v1.0/blogs'
 item_route = '/blogapi/v1.0/blogs/<int:id>'
 
-blogs = [
-    {
-      "author": "Kevin",
-      "content": "Write experiences, thoughts...",
-      "id": 1,
-      "title": "Blog Guide"
-    },
-    {
-      "author": "Emma",
-      "content": "Get creative, practice, practice, ",
-      "id": 2,
-      "title": "Programming Python"
-    },
-    {
-      "author": "Oliver",
-      "content": "Common misconceptions",
-      "id": 3,
-      "title": "Mistakes to Avoid"
-    },
-    {
-      "author": "Mike",
-      "content": "",
-      "id": 4,
-      "title": "Best Books"
-    },
-    {
-      "author": "John",
-      "content": "",
-      "id": 5,
-      "title": "Product Review"
-    }
-  ]
-
-blog_fields = {
-    'title': fields.String,
-    'content': fields.String,
-    'author': fields.String,
-    'uri': fields.Url('blog')
-}
-
 class BlogListAPI(Resource):
     def __init__(self):
         self.parser = reqparse.RequestParser()
@@ -155,21 +116,28 @@ class BlogListAPI(Resource):
         super(BlogListAPI, self).__init__()
     
     def get(self):
-        return {'blogs': [marshal(blog, blog_fields) for blog in blogs]}
+        return BlogModel.return_all()
+        #return {'Blogs': [marshal(blog, blog_fields) for blog in blogs]}
 
     def post(self):
         args = self.parser.parse_args()
-        blog = {
-            'id': blogs[-1]['id'] + 1 if len(blogs) > 0 else 1,
-            'title': args['title'],
-            'content': args['content'],
-            'author': args['author']
-        }
-        blogs.append(blog)
-        return {'blog': marshal(blog, blog_fields)}, 201
+        same_title = BlogModel.find_by_title(args['title'])
+        if same_title:
+            return {'message': 'Blog with title ({}) already exists'.format(same_title.title)}
+        new_blog = BlogModel(
+        title = args['title'],
+        content = args['content'],
+        author = args['author']
+        )
+        try:
+            new_blog.save_to_db()
+            return {'created blog': marshal(new_blog, blog_fields)}, 201
+        except:
+            return{'message': 'Something went wrong'},500
+        
 
 class BlogItemAPI(Resource):
-    @jwt_required
+    #@jwt_required
     def __init__(self):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('title', type=str, location='json')
@@ -178,25 +146,30 @@ class BlogItemAPI(Resource):
         super(BlogItemAPI, self).__init__()
 
     def get(self, id):
-        blog = [blog for blog in blogs if blog['id'] == id]
-        if len(blog) == 0:
-            abort(404)
-        return {'blog': marshal(blog[0], blog_fields)}
+        blog = BlogModel.query.get(id)
+        if blog:
+            return {'blog': marshal(blog, blog_fields)}
+        abort(404)
 
     def put(self, id):
-        blog = [blog for blog in blogs if blog['id'] == id]
-        if len(blog) == 0:
-            abort(404)
-        blog = blog[0]
         args = self.parser.parse_args()
-        for k, v in args.items():
-            if v is not None:
-                blog[k] = v
+        same_title = BlogModel.find_by_title(args['title'])
+        if same_title:
+            return {'message': 'Blog with title ({}) already exists'.format(same_title.title)}
+        blog = BlogModel.query.get(id)
+        if blog:           
+            try:
+                blog.update_db(args)
+                updated_blog = BlogModel.query.get(id)
+                return {'Updated args': marshal(updated_blog, blog_fields)}
+            except:
+                return{'message': 'Something went wrong'},500
+        return{'No blog with this id':id}
+
 
     def delete(self, id):
-        blog = [blog for blog in blogs if blog['id'] == id]
-        if len(blog) == 0:
-            abort(404)
-        blogs.remove(blog[0])
-        return {'Deleted': True}
+        blog = BlogModel.query.get(id)
+        if blog:
+            BlogModel.delete_db(blog)
+            return {'Deleted': marshal(blog, blog_fields)}
 
