@@ -70,9 +70,10 @@ class BlogModel(db.Model):
         db.session.commit()
     
     def update_db(self,args):
-        self.author = args['author']
-        self.title = args['title']
-        self.content = args['content']
+        for arg in args.items():
+            k,v = arg
+            if v is not None:
+                setattr(self,k,v)
         db.session.commit()
     
     def delete_db(self):
