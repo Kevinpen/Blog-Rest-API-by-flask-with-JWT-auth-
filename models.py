@@ -1,5 +1,6 @@
 from run import db
 from passlib.hash import pbkdf2_sha256 as sha256
+import datetime
 
 class UserModel(db.Model):
     __tablename__ = 'users'
@@ -64,6 +65,7 @@ class BlogModel(db.Model):
     author = db.Column(db.String(120), nullable = False)
     title = db.Column(db.String(200), unique=True, nullable = False)
     content = db.Column(db.String(1000), nullable = True)
+    dateupdated = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
     def save_to_db(self):
         db.session.add(self)
@@ -72,7 +74,7 @@ class BlogModel(db.Model):
     def update_db(self,args):
         for arg in args.items():
             k,v = arg
-            if v is not None:
+            if v is not None and k != 'dateupdated':
                 setattr(self,k,v)
         db.session.commit()
     

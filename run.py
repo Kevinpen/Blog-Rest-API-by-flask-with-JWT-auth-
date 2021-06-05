@@ -1,8 +1,9 @@
-from flask import Flask, jsonify
+from flask import Flask
 from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from data import blogs
+
 
 
 app = Flask(__name__)
@@ -55,11 +56,5 @@ api.add_resource(resources.AllUsers, '/users')
 api.add_resource(resources.BlogListAPI, resources.list_route, endpoint = 'blogs')
 api.add_resource(resources.BlogItemAPI, resources.item_route, endpoint = 'blog')
 
-@app.errorhandler(404)
-def not_found(error):
-    return (jsonify({'error': 'Not found'}), 404)
 
-@app.errorhandler(400)
-def bad_request(error):
-    return (jsonify({'error': 'Bad request'}), 400)
 

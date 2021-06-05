@@ -2,7 +2,7 @@ from flask import abort
 from flask_restful import Resource, reqparse, fields,marshal
 from models import UserModel, RevokedTokenModel, BlogModel
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
-
+import datetime
 
 list_route = '/blogapi/v1.0/blogs'
 item_route = '/blogapi/v1.0/blogs/<int:id>'
@@ -10,7 +10,8 @@ blog_fields = {
     'title': fields.String,
     'content': fields.String,
     'author': fields.String,
-    'uri': fields.Url('blog')
+    'uri': fields.Url('blog'),
+    'dateupdated':fields.DateTime(dt_format='rfc822')
 }
 
 class UserRegistration(Resource):
@@ -105,7 +106,7 @@ class AllUsers(Resource):
 
 
 class BlogListAPI(Resource):
-    @jwt_required
+    #@jwt_required
     def __init__(self):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('title', type=str, required=True,
@@ -115,6 +116,8 @@ class BlogListAPI(Resource):
                                    location='json')
         self.parser.add_argument('author', type=str, required = True,
                                    help='No Blog author provided',
+                                   location='json')
+        self.parser.add_argument('dateupdated', type=str, default ="",
                                    location='json')
         super(BlogListAPI, self).__init__()
     
@@ -140,7 +143,7 @@ class BlogListAPI(Resource):
         
 
 class BlogItemAPI(Resource):
-    @jwt_required
+    #@jwt_required
     def __init__(self):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('title', type=str, required=True,
@@ -150,6 +153,8 @@ class BlogItemAPI(Resource):
                                    location='json')
         self.parser.add_argument('author', type=str, required = True,
                                    help='No Blog author provided',
+                                   location='json')
+        self.parser.add_argument('dateupdated', type=str, default ="",
                                    location='json')
         super(BlogItemAPI, self).__init__()
 
