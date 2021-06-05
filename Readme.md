@@ -34,7 +34,7 @@ Use returned access token to view blog page:
 `curl -i -H "Authorization:Bearer <your access token>"  http://localhost:5000/blogapi/v1.0/blogs`
 
 ## Refresh Token
-The access token will expire after 15 minutues, when that happens, refresh the user with refresh token.
+The access token will expire after 15 minutes, when that happens, refresh the user with refresh token.
 
 `curl -i -H "Authorization:Bearer <your refresh token>" -X POST http://localhost:5000/token/refresh`
 
@@ -50,6 +50,16 @@ The access token will expire after 15 minutues, when that happens, refresh the u
 ## Delete a blog
 `curl -i -H "Authorization:Bearer <your access token>" -X DELETE  http://localhost:5000/blogapi/v1.0/blogs/5`
 
+## User logout
+When user logout, the access token will be added to a blacklist. 
+
+Test logout using access token:
+
+`curl -i -H "Authorization:Bearer <your access token>" -X POST http://localhost:5000/logout/access`
+
+Test logout using refresh token:
+
+`curl -i -H "Authorization:Bearer <your access token>" -X POST http://localhost:5000/logout/refresh`
 
 
 

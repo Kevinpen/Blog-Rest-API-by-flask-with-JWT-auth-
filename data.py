@@ -1,4 +1,4 @@
-from flask_restful import fields
+
 
 blogs = [
     {
@@ -33,9 +33,3 @@ blogs = [
     }
   ]
 
-blog_fields = {
-    'title': fields.String,
-    'content': fields.String,
-    'author': fields.String,
-    'uri': fields.Url('blog')
-}

@@ -1,18 +1,24 @@
 from flask import abort
-from flask_restful import Resource, reqparse, marshal
+from flask_restful import Resource, reqparse, fields,marshal
 from models import UserModel, RevokedTokenModel, BlogModel
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
-from data import *
 
-parser = reqparse.RequestParser()
-parser.add_argument('username', help = 'This field cannot be blank', required = True)
-parser.add_argument('password', help = 'This field cannot be blank', required = True)
+
 list_route = '/blogapi/v1.0/blogs'
 item_route = '/blogapi/v1.0/blogs/<int:id>'
+blog_fields = {
+    'title': fields.String,
+    'content': fields.String,
+    'author': fields.String,
+    'uri': fields.Url('blog')
+}
 
 class UserRegistration(Resource):
     def post(self):
-        data = parser.parse_args()
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('username', help = 'This field cannot be blank', required = True)
+        self.parser.add_argument('password', help = 'This field cannot be blank', required = True)
+        data = self.parser.parse_args()
         
         if UserModel.find_by_username(data['username']):
             return {'message': 'User {} already exists'.format(data['username'])}
@@ -37,7 +43,10 @@ class UserRegistration(Resource):
 
 class UserLogin(Resource):
     def post(self):
-        data = parser.parse_args()
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument('username', help = 'This field cannot be blank', required = True)
+        self.parser.add_argument('password', help = 'This field cannot be blank', required = True)
+        data = self.parser.parse_args()
         current_user = UserModel.find_by_username(data['username'])
 
         if not current_user:
@@ -104,12 +113,14 @@ class BlogListAPI(Resource):
                                    location='json')
         self.parser.add_argument('content', type=str, default="",
                                    location='json')
-        self.parser.add_argument('author', type=str, default="",
+        self.parser.add_argument('author', type=str, required = True,
+                                   help='No Blog author provided',
                                    location='json')
         super(BlogListAPI, self).__init__()
     
     def get(self):
-        return BlogModel.return_all()
+        blogs = BlogModel.query.all()
+        return {'blogs': marshal(blogs, blog_fields)}
 
     def post(self):
         args = self.parser.parse_args()
@@ -132,9 +143,14 @@ class BlogItemAPI(Resource):
     @jwt_required
     def __init__(self):
         self.parser = reqparse.RequestParser()
-        self.parser.add_argument('title', type=str, location='json')
-        self.parser.add_argument('content', type=str, location='json')
-        self.parser.add_argument('author', type=str, location='json')
+        self.parser.add_argument('title', type=str, required=True,
+                                   help='No Blog title provided',
+                                   location='json')
+        self.parser.add_argument('content', type=str, default="",
+                                   location='json')
+        self.parser.add_argument('author', type=str, required = True,
+                                   help='No Blog author provided',
+                                   location='json')
         super(BlogItemAPI, self).__init__()
 
     def get(self, id):
