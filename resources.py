@@ -2,14 +2,14 @@ from flask import abort
 from flask_restful import Resource, reqparse, fields,marshal
 from models import UserModel, RevokedTokenModel, BlogModel
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
-import datetime
+
 
 list_route = '/blogapi/v1.0/blogs'
 item_route = '/blogapi/v1.0/blogs/<int:id>'
 blog_fields = {
     'title': fields.String,
     'content': fields.String,
-    'author': fields.String,
+    'author_id': fields.Integer,
     'uri': fields.Url('blog'),
     'dateupdated':fields.DateTime(dt_format='rfc822')
 }
@@ -31,8 +31,8 @@ class UserRegistration(Resource):
         
         try:
             new_user.save_to_db()
-            access_token = create_access_token(identity = data['username'])
-            refresh_token = create_refresh_token(identity = data['username'])
+            access_token = create_access_token(identity = new_user.id)
+            refresh_token = create_refresh_token(identity = new_user.id)
             return {
                 'message': 'User {} was created'.format(data['username']),
                 'access_token': access_token,
@@ -114,8 +114,7 @@ class BlogListAPI(Resource):
                                    location='json')
         self.parser.add_argument('content', type=str, default="",
                                    location='json')
-        self.parser.add_argument('author', type=str, required = True,
-                                   help='No Blog author provided',
+        self.parser.add_argument('author_id', type=int, default="",
                                    location='json')
         self.parser.add_argument('dateupdated', type=str, default ="",
                                    location='json')
@@ -133,17 +132,17 @@ class BlogListAPI(Resource):
         new_blog = BlogModel(
         title = args['title'],
         content = args['content'],
-        author = args['author']
+        author_id = get_jwt_identity()
         )
         try:
             new_blog.save_to_db()
             return {'created blog': marshal(new_blog, blog_fields)}, 201
         except:
-            return{'message': 'Something went wrong'},500
+            return{'message': 'Something here went wrong'},500
         
 
 class BlogItemAPI(Resource):
-    @jwt_required
+    #@jwt_required
     def __init__(self):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('title', type=str, required=True,
@@ -151,8 +150,7 @@ class BlogItemAPI(Resource):
                                    location='json')
         self.parser.add_argument('content', type=str, default="",
                                    location='json')
-        self.parser.add_argument('author', type=str, required = True,
-                                   help='No Blog author provided',
+        self.parser.add_argument('author_id', type=int, default="",
                                    location='json')
         self.parser.add_argument('dateupdated', type=str, default ="",
                                    location='json')
@@ -172,6 +170,7 @@ class BlogItemAPI(Resource):
         blog = BlogModel.query.get(id)
         if blog:           
             try:
+                args['author_id'] = get_jwt_identity()
                 blog.update_db(args)
                 updated_blog = BlogModel.query.get(id)
                 return {'Updated args': marshal(updated_blog, blog_fields)}

@@ -30,7 +30,7 @@ def init_db():
     db.session.query(models.BlogModel).delete()
     for blog in blogs:
         new_blog = resources.BlogModel(
-            author = blog['author'], 
+            author_id = blog['author_id'], 
             title = blog['title'],
             content =blog['content']
         )
