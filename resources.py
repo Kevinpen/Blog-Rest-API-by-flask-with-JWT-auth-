@@ -1,4 +1,5 @@
 from flask import abort
+from flask.globals import current_app
 from flask_restful import Resource, reqparse, fields,marshal
 from models import UserModel, RevokedTokenModel, BlogModel
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt)
@@ -54,8 +55,8 @@ class UserLogin(Resource):
             return {'message': 'User {} doesn\'t exist'.format(data['username'])}
         
         if UserModel.verify_hash(data['password'], current_user.password):
-            access_token = create_access_token(identity = data['username'])
-            refresh_token = create_refresh_token(identity = data['username'])
+            access_token = create_access_token(identity = current_user.id)
+            refresh_token = create_refresh_token(identity = current_user.id)
             return {
                 'message': 'Logged in as {}'.format(current_user.username),
                 'access_token': access_token,
@@ -138,7 +139,7 @@ class BlogListAPI(Resource):
             new_blog.save_to_db()
             return {'created blog': marshal(new_blog, blog_fields)}, 201
         except:
-            return{'message': 'Something here went wrong'},500
+            return{'message': 'Something went wrong'},500
         
 
 class BlogItemAPI(Resource):
