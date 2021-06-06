@@ -42,10 +42,10 @@ The access token will expire after 15 minutes, when that happens, refresh the us
 `curl -i -H "Authorization:Bearer <your access token>"  http://localhost:5000/blogapi/v1.0/blogs/3`
 
 ## Post new blog
-`curl -i -H "Authorization:Bearer <your access token>" -H "Content-Type: application/json" -X POST -d '{"title":"How to","author":"Elon"}' http://localhost:5000/blogapi/v1.0/blogs`
+`curl -i -H "Authorization:Bearer <your access token>" -H "Content-Type: application/json" -X POST -d '{"title":"How to"}' http://localhost:5000/blogapi/v1.0/blogs`
 
 ## Update a blog
-`curl -i -H "Authorization:Bearer <your access token>" -H "Content-Type: application/json" -X PUT -d '{"author":"Emma", "title":"head","content":"content"}' http://localhost:5000/blogapi/v1.0/blogs/5`
+`curl -i -H "Authorization:Bearer <your access token>" -H "Content-Type: application/json" -X PUT -d '{"title":"head","content":"content"}' http://localhost:5000/blogapi/v1.0/blogs/5`
 
 ## Delete a blog
 `curl -i -H "Authorization:Bearer <your access token>" -X DELETE  http://localhost:5000/blogapi/v1.0/blogs/5`

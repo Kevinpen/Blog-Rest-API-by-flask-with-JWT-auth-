@@ -62,7 +62,7 @@ class BlogModel(db.Model):
     __tablename__ = 'blogs'
 
     id = db.Column(db.Integer, primary_key = True)
-    author = db.Column(db.String(120), nullable = False)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable = False)
     title = db.Column(db.String(200), unique=True, nullable = False)
     content = db.Column(db.String(1000), nullable = True)
     dateupdated = db.Column(db.DateTime, index=True, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
@@ -91,7 +91,7 @@ class BlogModel(db.Model):
         def to_json(x):
             return {
                 'id': x.id,
-                'Author': x.author,
+                'Author': x.author_id,
                 'Title': x.title,
                 'Content': x.content
             }
