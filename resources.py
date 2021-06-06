@@ -106,7 +106,7 @@ class AllUsers(Resource):
 
 
 class BlogListAPI(Resource):
-    #@jwt_required
+    @jwt_required
     def __init__(self):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('title', type=str, required=True,
@@ -143,7 +143,7 @@ class BlogListAPI(Resource):
         
 
 class BlogItemAPI(Resource):
-    #@jwt_required
+    @jwt_required
     def __init__(self):
         self.parser = reqparse.RequestParser()
         self.parser.add_argument('title', type=str, required=True,
